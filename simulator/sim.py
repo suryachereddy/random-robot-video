@@ -59,6 +59,8 @@ class render():
         controller_config = load_controller_config(
             default_controller=controller_name)
         if render:
+            print("Warning: Rendering is enabled in the simulator. This will not record the camera observation data")
+            
             self.env = suite.make(
                 env,
                 # Use single arm env
@@ -74,7 +76,7 @@ class render():
                 control_freq=20,                        # 20 hz control for applied actions
                 horizon=200,                            # each episode terminates after 200 steps
                 use_object_obs=False,                   # no observations needed
-                use_camera_obs=True,                   # no observations needed
+                use_camera_obs=False,                   # no observations needed
             )
         else:
             self.env = suite.make(
@@ -103,7 +105,8 @@ class render():
         for i in range(1000):
             action = np.random.uniform(low, high)
             obs, reward, done, _ = self.env.step(action)
-            #self.env.render()
+            if render:
+                self.env.render()
             if done:
                 self.env.reset()
             if i==0 and debug:
