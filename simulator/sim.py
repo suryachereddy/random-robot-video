@@ -103,7 +103,7 @@ class render():
         low, high = self.env.action_spec
         self.currentobs=None
         self.observation=[]
-        for i in range(60):
+        for i in range(frames):
             action = np.random.uniform(low, high)
             obs, reward, done, _ = self.env.step(action)
             self.observation.append(obs)
