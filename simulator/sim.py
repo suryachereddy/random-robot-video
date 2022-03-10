@@ -98,13 +98,15 @@ class render():
             )
 
 
-    def randomAction(self,render=True,debug=False):
+    def randomAction(self,frames=120, save_path="!",render=True,debug=False):
         self.createenv(render=render)
         low, high = self.env.action_spec
         self.currentobs=None
-        for i in range(1000):
+        self.observation=[]
+        for i in range(frames):
             action = np.random.uniform(low, high)
             obs, reward, done, _ = self.env.step(action)
+            self.observation.append(obs)
             if render:
                 self.env.render()
             if done:
@@ -113,3 +115,5 @@ class render():
                 print(obs)
                 print(obs.keys())
             self.currentobs=obs
+        if save_path!="!":
+            np.save(save_path,self.observation)
