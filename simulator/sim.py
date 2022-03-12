@@ -25,37 +25,22 @@ class render():
         self.test_value = self.controller_settings[controller_name][2]
 
 
-    """
-    #commented code not used
-    def action(self, steps_per_action = 75,steps_per_rest = 75):
-
-        action_dim=self.controller_settings[self.controller_name][0]
-        neutral = np.zeros(action_dim)
-
-        count = 0
-        num_test_steps = self.controller_settings[self.controller_name][1]
-        # Loop through controller space
-        while count < num_test_steps:
-            action = neutral.copy()
-            for i in range(steps_per_action):
-                if self.controller_name in {"IK_POSE", "OSC_POSE"} and count > 2:
-                    # Set this value to be the scaled axis angle vector
-                    vec = np.zeros(3)
-                    vec[count - 3] = test_value
-                    action[3:6] = vec
-                else:
-                    action[count] = test_value
-                total_action = np.tile(action, n)
-                self.env.step(total_action)
-                self.env.render()
-            for i in range(steps_per_rest):
-                total_action = np.tile(neutral, n)
-                self.env.step(total_action)
-                self.env.render()
-            count += 1
-    """    
-
     def createenv(self,env="Lift",robots=None,controller_name="JOINT_POSITION",render=True):
+        """
+        This function will create the robot environment and set the controller
+
+        Attributes:
+            env (str): name of the environment. Default is "Lift"
+            robots (list): list of robot names. Default is None
+            controller_name (str): name of the controller. Default is "JOINT_POSITION"
+            render (bool): if True, then it will render the environment.
+
+        Returns:
+            None
+        
+        TO DO:
+            None
+        """
         controller_config = load_controller_config(
             default_controller=controller_name)
         if render:
@@ -99,6 +84,22 @@ class render():
 
 
     def randomAction(self,frames=120, save_path="!",render=True,debug=False):
+        """
+        This function will generate a random action and render the environment
+
+        Attributes:
+            frames (int): number of frames to render
+            save_path (str): path to save the Numpy video array of. If "!", then it will not save the video. Also, please end the path with file name
+            render (bool): if True, then it will render the environment. Note that this will not record the camera observation data
+            debug (bool): Currently only used for developmen. Please ignore.
+
+        Returns:
+            None
+        
+        TO DO:
+            - Allow to save robot's joint space along with frame
+            - Allow side view camera
+        """
         self.createenv(render=render)
         low, high = self.env.action_spec
         self.currentobs=None
