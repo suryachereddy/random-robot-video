@@ -7,7 +7,7 @@ from random import randrange
 
 class render():
     
-    def __init__(self,controller_name="JOINT_POSITION"):
+    def __init__(self,controller_name="OSC_POSE"):
         self.env="Lift"
         self.controller_name=controller_name
         self.controller_settings = {
@@ -26,7 +26,7 @@ class render():
         self.test_value = self.controller_settings[controller_name][2]
 
 
-    def createenv(self,env="Lift",robots=None,controller_name="OSC_POSE",render=True):
+    def createenv(self,env="Lift",robots=None,render=True):
         """
         This function will create the robot environment and set the controller
 
@@ -43,7 +43,7 @@ class render():
             None
         """
         controller_config = load_controller_config(
-            default_controller=controller_name)
+            default_controller=self.controller_name)
         if render:
             print("Warning: Rendering is enabled in the simulator. This will not record the camera observation data")
             
@@ -102,7 +102,7 @@ class render():
             - Allow side view camera
         """
         self.createenv(render=render)
-        controller_name="OSC_POSE"
+        controller_name=self.controller_name
         action_dim = self.controller_settings[controller_name][0]
                 
         # Get total number of arms being controlled
@@ -120,7 +120,7 @@ class render():
         #self.env.reset()
         self.currentobs=[]
         self.observation=[]
-
+        self.env.reset()
         # Loop through controller space
         for j in range(tests):
             #action=neutral.copy()
@@ -133,7 +133,6 @@ class render():
                 #action[3:6] = vec
                 
                 total_action = np.tile(action, n)
-
                 obs, reward, done, _ = self.env.step(total_action)
                 self.observation.append(obs)
                 if render:
