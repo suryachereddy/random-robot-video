@@ -3,14 +3,15 @@ from robosuite.controllers import load_controller_config
 from robosuite.robots import Bimanual
 import numpy as np
 from robosuite.utils.input_utils import choose_environment,choose_robots
+from random import randrange
 
 class render():
     
-    def __init__(self,controller_name="JOINT_POSITION"):
+    def __init__(self,controller_name="OSC_POSE"):
         self.env="Lift"
         self.controller_name=controller_name
         self.controller_settings = {
-        "OSC_POSE": [6, 6, 0.1],
+        "OSC_POSE": [6, 6, 0.2],
         "OSC_POSITION": [3, 3, 0.1],
         "IK_POSE": [6, 6, 0.01],
         "JOINT_POSITION": [7, 7, 0.2],
@@ -25,7 +26,7 @@ class render():
         self.test_value = self.controller_settings[controller_name][2]
 
 
-    def createenv(self,env="Lift",robots=None,controller_name="JOINT_POSITION",render=True):
+    def createenv(self,env="Lift",robots=None,render=True):
         """
         This function will create the robot environment and set the controller
 
@@ -42,7 +43,7 @@ class render():
             None
         """
         controller_config = load_controller_config(
-            default_controller=controller_name)
+            default_controller=self.controller_name)
         if render:
             print("Warning: Rendering is enabled in the simulator. This will not record the camera observation data")
             
@@ -83,7 +84,7 @@ class render():
             )
 
 
-    def randomAction(self,frames=120, save_path="!",render=True,debug=False):
+    def randomAction(self,frames=120, save_path="!",render=True,debug=False,tests=5):
         """
         This function will generate a random action and render the environment
 
@@ -92,7 +93,7 @@ class render():
             save_path (str): path to save the Numpy video array of. If "!", then it will not save the video. Also, please end the path with file name
             render (bool): if True, then it will render the environment. Note that this will not record the camera observation data
             debug (bool): Currently only used for developmen. Please ignore.
-
+            tests (int): number of times to run the random action. Default is 5
         Returns:
             None
         
@@ -101,20 +102,53 @@ class render():
             - Allow side view camera
         """
         self.createenv(render=render)
-        low, high = self.env.action_spec
-        self.currentobs=None
+        controller_name=self.controller_name
+        action_dim = self.controller_settings[controller_name][0]
+                
+        # Get total number of arms being controlled
+        n=0
+        
+        for robot in self.env.robots:
+            gripper_dim = robot.gripper["right"].dof if isinstance(robot, Bimanual) else robot.gripper.dof
+            n += int(robot.action_dim / (action_dim + gripper_dim))
+        
+            
+
+
+        
+
+        #self.env.reset()
+        self.currentobs=[]
         self.observation=[]
-        for i in range(frames):
-            action = np.random.uniform(low, high)
-            obs, reward, done, _ = self.env.step(action)
-            self.observation.append(obs)
-            if render:
-                self.env.render()
-            if done:
-                self.env.reset()
-            if i==0 and debug:
-                print(obs)
-                print(obs.keys())
-            self.currentobs=obs
+        self.env.reset()
+        # Loop through controller space
+        for j in range(tests):
+            #action=neutral.copy()
+            for i in range(frames):
+                if (i%10==0):
+                    vec = np.random.uniform(low=-0.3, high=0.3, size=action_dim + gripper_dim)
+
+                action=vec.copy()
+                action+=np.random.uniform(low=-0.01, high=0.01, size=action_dim + gripper_dim)
+                #action[3:6] = vec
+                
+                total_action = np.tile(action, n)
+                obs, reward, done, _ = self.env.step(total_action)
+                self.observation.append(obs)
+                if render:
+                    self.env.render()
+                if done:
+                    self.env.reset()
+                
+
+                if i==0 and debug:
+                    print(obs)
+                    print(obs.keys())
+                self.currentobs=obs
+    
+                
+            
+            
         if save_path!="!":
             np.save(save_path,self.observation)
+        self.env.close()
