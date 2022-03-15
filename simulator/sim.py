@@ -1,3 +1,4 @@
+from distutils.filelist import findall
 import robosuite as suite
 from robosuite.controllers import load_controller_config
 from robosuite.robots import Bimanual
@@ -101,6 +102,8 @@ class render():
             - Allow to save robot's joint space along with frame
             - Allow side view camera
         """
+        if save_path!="!" and render==True:
+            print("Warning: Rendering is enabled and save_path is given. This will not save the camera observation data")
         self.createenv(render=render)
         controller_name=self.controller_name
         action_dim = self.controller_settings[controller_name][0]
@@ -119,7 +122,7 @@ class render():
 
         #self.env.reset()
         self.currentobs=[]
-        self.observation=[]
+        self.videoobservation=[]
         self.env.reset()
         # Loop through controller space
         for j in range(tests):
@@ -134,7 +137,8 @@ class render():
                 
                 total_action = np.tile(action, n)
                 obs, reward, done, _ = self.env.step(total_action)
-                self.observation.append(obs)
+                if not render:
+                    self.videoobservation.append(obs["frontview_image"])
                 if render:
                     self.env.render()
                 if done:
@@ -149,6 +153,7 @@ class render():
                 
             
             
-        if save_path!="!":
-            np.save(save_path,self.observation)
+            if save_path!="!" and render!=True:
+                np.save(f"{save_path}_{j}",self.videoobservation)
+                self.videoobservation=[]
         self.env.close()
