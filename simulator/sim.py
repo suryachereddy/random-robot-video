@@ -83,9 +83,23 @@ class render():
                 use_object_obs=False,                   # no observations needed
                 use_camera_obs=True,                   # no observations needed
             )
+    def replayAction(self,action, end=False,robot="Jaco",render=True):
+        """
+        This function will replay the action in the environment
 
+        Attributes:
+            action (list): action to be replayed
+            end (bool): if True, then it will end the episode. This must be set True in the end
 
-    def randomAction(self,frames=120, save_path="!",render=True,debug=False,tests=5, robot="Jaco"):
+        Returns:
+            None
+        
+        TO DO:
+            None
+        """
+        pass
+
+    def randomAction(self,frames=120, save_path="!",render=True,debug=False,tests=5, robot="Jaco",jointsave=True):
         """
         This function will generate a random action and render the environment
 
@@ -121,8 +135,12 @@ class render():
         
 
         #self.env.reset()
-        self.currentobs=[]
+        #self.currentobs=[] # used for debugging
+        
         self.videoobservation=[]
+        if jointsave:
+            self.jointobservation=[]
+        self.jointspace=[]
         self.env.reset()
         # Loop through controller space
         for j in range(tests):
@@ -139,6 +157,8 @@ class render():
                 obs, reward, done, _ = self.env.step(total_action)
                 if not render:
                     self.videoobservation.append(obs["frontview_image"])
+                    if jointsave:
+                        self.jointobservation.append(action)
                 if render:
                     self.env.render()
                 if done:
@@ -148,11 +168,12 @@ class render():
                 if i==0 and debug:
                     print(obs)
                     print(obs.keys())
-                self.currentobs=obs
+                #self.currentobs=obs #used for debug
                 
             
             
             if save_path!="!" and render!=True:
-                np.save(f"{save_path}_{j}",self.videoobservation)
+                np.save(f"{save_path}/video_{j}",self.videoobservation)
+                np.save(f"{save_path}/joint_{j}",self.jointobservation)
                 self.videoobservation=[]
         self.env.close()
