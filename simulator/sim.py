@@ -27,13 +27,13 @@ class render():
         self.test_value = self.controller_settings[controller_name][2]
 
 
-    def createenv(self,env="Lift",robots=None,render=True):
+    def createenv(self,env="Lift",robot="Jaco",render=True):
         """
         This function will create the robot environment and set the controller
 
         Attributes:
             env (str): name of the environment. Default is "Lift"
-            robots (list): list of robot names. Default is None
+            robots (list): Robot Name for sim. Default is "Jaco"
             controller_name (str): name of the controller. Default is "JOINT_POSITION"
             render (bool): if True, then it will render the environment.
 
@@ -51,7 +51,7 @@ class render():
             self.env = suite.make(
                 env,
                 # Use single arm env
-                robots=["Jaco"],
+                robots=[robot],
                 gripper_types="default",                # use default grippers per robot arm
                 controller_configs=controller_config,   # each arm is controlled using OSCjoint_dim
                 # (two-arm envs only) arms face each other
@@ -69,7 +69,7 @@ class render():
             self.env = suite.make(
                 env,
                 # Use single arm env
-                robots=["Jaco"],
+                robots=[robot],
                 gripper_types="default",                # use default grippers per robot arm
                 controller_configs=controller_config,   # each arm is controlled using OSCjoint_dim
                 # (two-arm envs only) arms face each other
@@ -85,7 +85,7 @@ class render():
             )
 
 
-    def randomAction(self,frames=120, save_path="!",render=True,debug=False,tests=5):
+    def randomAction(self,frames=120, save_path="!",render=True,debug=False,tests=5, robot="Jaco"):
         """
         This function will generate a random action and render the environment
 
@@ -104,7 +104,7 @@ class render():
         """
         if save_path!="!" and render==True:
             print("Warning: Rendering is enabled and save_path is given. This will not save the camera observation data")
-        self.createenv(render=render)
+        self.createenv(render=render, robot=robot)
         controller_name=self.controller_name
         action_dim = self.controller_settings[controller_name][0]
                 
@@ -149,7 +149,6 @@ class render():
                     print(obs)
                     print(obs.keys())
                 self.currentobs=obs
-    
                 
             
             
