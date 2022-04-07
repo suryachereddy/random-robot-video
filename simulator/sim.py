@@ -64,6 +64,7 @@ class render():
                 horizon=200,                            # each episode terminates after 200 steps
                 use_object_obs=False,                   # no observations needed
                 use_camera_obs=False,                   # no observations needed
+                hard_reset=False
             )
         else:
             self.env = suite.make(
@@ -81,11 +82,17 @@ class render():
                 control_freq=20,                        # 20 hz control for applied actions
                 horizon=200,                            # each episode terminates after 200 steps
                 use_object_obs=False,                   # no observations needed
-                use_camera_obs=True,                   # no observations needed
+                use_camera_obs=True,   
+                hard_reset=False                
             )
-    def replayAction(self,action, end=False,robot="Jaco",render=True):
+    def CreateAndReset(self,robot="Jaco",render=True):
+        self.createenv(render=render, robot=robot)
+        self.env.reset()
+        
+    def replayAction(self,actions, render=False, robot="Jaco"):
         """
         This function will replay the action in the environment
+        Note: "NewClass must be created before looping replayAction"
 
         Attributes:
             action (list): action to be replayed
@@ -95,9 +102,22 @@ class render():
             None
         
         TO DO:
-            None
+            render
         """
-        pass
+
+        self.createenv(render=render, robot=robot)
+        video=[]
+        for action in actions:
+            
+            obs, reward, done, _ = self.env.step(action)
+            if not render:
+                video.append(obs["frontview_image"])
+        if render:
+                self.env.render()
+
+        self.env.close()
+        if not render:
+            return video
 
     def randomAction(self,frames=120, save_path="!",render=True,debug=False,tests=5, robot="Jaco",jointsave=True):
         """
@@ -129,9 +149,6 @@ class render():
             gripper_dim = robot.gripper["right"].dof if isinstance(robot, Bimanual) else robot.gripper.dof
             n += int(robot.action_dim / (action_dim + gripper_dim))
         
-            
-
-
         
 
         #self.env.reset()
@@ -158,7 +175,7 @@ class render():
                 if not render:
                     self.videoobservation.append(obs["frontview_image"])
                     if jointsave:
-                        self.jointobservation.append(action)
+                        self.jointobservation.append(total_action)
                 if render:
                     self.env.render()
                 if done:
