@@ -106,6 +106,7 @@ class render():
         """
 
         self.createenv(render=render, robot=robot)
+        self.env.reset()
         video=[]
         for action in actions:
             
