@@ -5,6 +5,11 @@ from robosuite.robots import Bimanual
 import numpy as np
 from robosuite.utils.input_utils import choose_environment,choose_robots
 from random import randrange
+from robosuite.wrappers import DomainRandomizationWrapper
+import robosuite.utils.macros as macros
+from tqdm import tqdm
+# We'll use instance randomization so that entire geom groups are randomized together
+macros.USING_INSTANCE_RANDOMIZATION = True
 
 class render():
     
@@ -120,7 +125,7 @@ class render():
         if not render:
             return video
 
-    def randomAction(self,frames=120, save_path="!",render=True,debug=False,tests=5, robot="Jaco",jointsave=True):
+    def randomAction(self,frames=120, save_path="!",render=True,debug=False,tests=5, robot="Jaco",jointsave=True,isDomainRandomization=True):
         """
         This function will generate a random action and render the environment
 
@@ -140,6 +145,8 @@ class render():
         if save_path!="!" and render==True:
             print("Warning: Rendering is enabled and save_path is given. This will not save the camera observation data")
         self.createenv(render=render, robot=robot)
+        if isDomainRandomization:
+            self.env=DomainRandomizationWrapper(self.env,randomize_dynamics=False,randomize_every_n_steps=60)
         controller_name=self.controller_name
         action_dim = self.controller_settings[controller_name][0]
                 
@@ -163,7 +170,7 @@ class render():
         # Loop through controller space
         for j in range(tests):
             #action=neutral.copy()
-            for i in range(frames):
+            for i in tqdm(range(frames)):
                 if (i%10==0):
                     vec = np.random.uniform(low=-0.3, high=0.3, size=action_dim + gripper_dim)
 
