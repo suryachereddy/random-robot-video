@@ -64,6 +64,7 @@ class render():
                 horizon=200,                            # each episode terminates after 200 steps
                 use_object_obs=False,                   # no observations needed
                 use_camera_obs=False,                   # no observations needed
+                hard_reset=False
             )
         else:
             self.env = suite.make(
@@ -81,11 +82,44 @@ class render():
                 control_freq=20,                        # 20 hz control for applied actions
                 horizon=200,                            # each episode terminates after 200 steps
                 use_object_obs=False,                   # no observations needed
-                use_camera_obs=True,                   # no observations needed
+                use_camera_obs=True,   
+                hard_reset=False                
             )
+    def CreateAndReset(self,robot="Jaco",render=True):
+        self.createenv(render=render, robot=robot)
+        self.env.reset()
+        
+    def replayAction(self,actions, render=False, robot="Jaco"):
+        """
+        This function will replay the action in the environment
+        Note: "NewClass must be created before looping replayAction"
 
+        Attributes:
+            action (list): action to be replayed
+            end (bool): if True, then it will end the episode. This must be set True in the end
 
-    def randomAction(self,frames=120, save_path="!",render=True,debug=False,tests=5, robot="Jaco"):
+        Returns:
+            None
+        
+        TO DO:
+            render
+        """
+
+        self.createenv(render=render, robot=robot)
+        video=[]
+        for action in actions:
+            
+            obs, reward, done, _ = self.env.step(action)
+            if not render:
+                video.append(obs["frontview_image"])
+        if render:
+                self.env.render()
+
+        self.env.close()
+        if not render:
+            return video
+
+    def randomAction(self,frames=120, save_path="!",render=True,debug=False,tests=5, robot="Jaco",jointsave=True):
         """
         This function will generate a random action and render the environment
 
@@ -115,14 +149,15 @@ class render():
             gripper_dim = robot.gripper["right"].dof if isinstance(robot, Bimanual) else robot.gripper.dof
             n += int(robot.action_dim / (action_dim + gripper_dim))
         
-            
-
-
         
 
         #self.env.reset()
-        self.currentobs=[]
+        #self.currentobs=[] # used for debugging
+        
         self.videoobservation=[]
+        if jointsave:
+            self.jointobservation=[]
+        self.jointspace=[]
         self.env.reset()
         # Loop through controller space
         for j in range(tests):
@@ -139,6 +174,8 @@ class render():
                 obs, reward, done, _ = self.env.step(total_action)
                 if not render:
                     self.videoobservation.append(obs["frontview_image"])
+                    if jointsave:
+                        self.jointobservation.append(total_action)
                 if render:
                     self.env.render()
                 if done:
@@ -148,11 +185,12 @@ class render():
                 if i==0 and debug:
                     print(obs)
                     print(obs.keys())
-                self.currentobs=obs
+                #self.currentobs=obs #used for debug
                 
             
             
             if save_path!="!" and render!=True:
-                np.save(f"{save_path}_{j}",self.videoobservation)
+                np.save(f"{save_path}/video_{j}",self.videoobservation)
+                np.save(f"{save_path}/joint_{j}",self.jointobservation)
                 self.videoobservation=[]
         self.env.close()
