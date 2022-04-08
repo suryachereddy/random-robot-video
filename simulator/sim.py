@@ -168,9 +168,9 @@ class render():
         self.jointspace=[]
         self.env.reset()
         # Loop through controller space
-        for j in range(tests):
+        for j in tqdm(range(tests)):
             #action=neutral.copy()
-            for i in tqdm(range(frames)):
+            for i in range(frames):
                 if (i%10==0):
                     vec = np.random.uniform(low=-0.3, high=0.3, size=action_dim + gripper_dim)
 
@@ -201,4 +201,5 @@ class render():
                 np.save(f"{save_path}/video_{j}",self.videoobservation)
                 np.save(f"{save_path}/joint_{j}",self.jointobservation)
                 self.videoobservation=[]
+                self.jointobservation=[]
         self.env.close()
