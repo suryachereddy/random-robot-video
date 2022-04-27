@@ -1,4 +1,5 @@
 from distutils.filelist import findall
+from tkinter import Frame
 import robosuite as suite
 from robosuite.controllers import load_controller_config
 from robosuite.robots import Bimanual
@@ -8,12 +9,15 @@ from random import randrange
 from robosuite.wrappers import DomainRandomizationWrapper
 import robosuite.utils.macros as macros
 from tqdm import tqdm
+import cv2
 # We'll use instance randomization so that entire geom groups are randomized together
 macros.USING_INSTANCE_RANDOMIZATION = True
+framesize=(256,256)
+fps=24
 
 class render():
     
-    def __init__(self,controller_name="OSC_POSE"):
+    def __init__(self,controller_name="JOINT_POSITION"):
         self.env="Lift"
         self.controller_name=controller_name
         self.controller_settings = {
@@ -114,7 +118,8 @@ class render():
         self.env.reset()
         video=[]
         for action in actions:
-            
+            if type(action)!="list":
+                action=action.tolist()
             obs, reward, done, _ = self.env.step(action)
             if not render:
                 video.append(obs["frontview_image"])
@@ -125,7 +130,7 @@ class render():
         if not render:
             return video
 
-    def randomAction(self,frames=120, save_path="!",render=True,debug=False,tests=5, robot="Jaco",jointsave=True,isDomainRandomization=True):
+    def randomAction(self,frames=120, save_path="!",render=True,debug=False,tests=5, robot="Jaco",jointsave=True,isDomainRandomization=True,startindex=0):
         """
         This function will generate a random action and render the environment
 
@@ -198,8 +203,9 @@ class render():
             
             
             if save_path!="!" and render!=True:
-                np.save(f"{save_path}/video_{j}",self.videoobservation)
-                np.save(f"{save_path}/joint_{j}",self.jointobservation)
+                np.save(f"{save_path}/video_{startindex}",self.videoobservation)
+                np.save(f"{save_path}/joint_{startindex}",self.jointobservation)
+                startindex+=1
                 self.videoobservation=[]
                 self.jointobservation=[]
         self.env.close()
